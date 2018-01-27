@@ -1,4 +1,9 @@
-# Compiled class file
+# Compiled class files
 *.class
 
-/out
+# Output files
+out/
+
+# Idea
+*.iml
+.idea/
