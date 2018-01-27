@@ -1,2 +1,7 @@
 # XQuery-Processor
-An XQuery execution engine
+UCSD CSE 232B project - An XQuery execution engine
+
+### Progress:
+- [ ] XPath evaluator
+- [ ] XQuery evaluator
+- [ ] Join operator optimization
