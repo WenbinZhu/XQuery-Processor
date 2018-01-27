@@ -1,5 +1,6 @@
 // Generated from XQuery.g4 by ANTLR 4.7.1
 package main.antlr;
+
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**
