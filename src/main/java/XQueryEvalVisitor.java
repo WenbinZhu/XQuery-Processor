@@ -18,11 +18,6 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     }
 
     @Override
-    public List<Node> visitFile(XQueryParser.FileContext ctx) {
-        return super.visitFile(ctx);
-    }
-
-    @Override
     public List<Node> visitDescendants(XQueryParser.DescendantsContext ctx) {
         return super.visitDescendants(ctx);
     }
