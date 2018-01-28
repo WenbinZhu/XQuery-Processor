@@ -1,25 +1,58 @@
 package main.java;
 
 import main.antlr.XQueryParser;
-import org.w3c.dom.Node;
-import java.util.List;
-
 import main.antlr.XQueryBaseVisitor;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import java.io.File;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
+
+    private List<Node> curNodes = new ArrayList<>();
+
     @Override
     public List<Node> visitApChildren(XQueryParser.ApChildrenContext ctx) {
-        return super.visitApChildren(ctx);
+        visit(ctx.doc());
+        return visit(ctx.rp());
     }
 
     @Override
     public List<Node> visitApDescendants(XQueryParser.ApDescendantsContext ctx) {
-        return super.visitApDescendants(ctx);
+        visit(ctx.doc());
+        curNodes.addAll(getAllDescendants(curNodes));
+        return visit(ctx.rp());
     }
 
     @Override
     public List<Node> visitXmlDoc(XQueryParser.XmlDocContext ctx) {
-        return super.visitXmlDoc(ctx);
+        List<Node> result = new ArrayList<>();
+        String resource = "src/main/resources";
+        String fname = ctx.fname().getText();
+        File xmlFile = Paths.get(resource, fname).toAbsolutePath().toFile();
+
+        try {
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            docFactory.setIgnoringElementContentWhitespace(true);
+            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+            Document doc = docBuilder.parse(xmlFile);
+            result.add(doc);
+            curNodes = result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        return result;
     }
 
     @Override
@@ -28,13 +61,26 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     }
 
     @Override
-    public List<Node> visitDescendants(XQueryParser.DescendantsContext ctx) {
-        return super.visitDescendants(ctx);
+    public List<Node> visitCurrent(XQueryParser.CurrentContext ctx) {
+        return curNodes;
     }
 
     @Override
     public List<Node> visitTagName(XQueryParser.TagNameContext ctx) {
-        return super.visitTagName(ctx);
+        String tagName = ctx.WORD().getText();
+        List<Node> result = new ArrayList<>();
+
+        for (Node node : curNodes) {
+            NodeList Children = node.getChildNodes();
+            for (int i = 0; i < Children.getLength(); i++) {
+                Node child = Children.item(i);
+                if (child.getNodeType() == Node.ELEMENT_NODE && child.getNodeName().equals(tagName))
+                    result.add(child);
+            }
+        }
+        curNodes = result;
+
+        return result;
     }
 
     @Override
@@ -49,7 +95,11 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitRpChildren(XQueryParser.RpChildrenContext ctx) {
-        return super.visitRpChildren(ctx);
+        visit(ctx.rp(0));
+        List<Node> nodes = visit(ctx.rp(1));
+        curNodes = nodes;
+
+        return unique(nodes);
     }
 
     @Override
@@ -115,5 +165,35 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     @Override
     public List<Node> visitFilterIs(XQueryParser.FilterIsContext ctx) {
         return super.visitFilterIs(ctx);
+    }
+
+    private List<Node> unique(List<Node> nodes) {
+        Set<Node> nodeSet = new HashSet<>();
+        List<Node> result = new ArrayList<>();
+
+        for (Node node : nodes) {
+            if (!nodeSet.contains(node)) {
+                nodeSet.add(node);
+                result.add(node);
+            }
+        }
+
+        return result;
+    }
+
+    private List<Node> getAllDescendants(List<Node> nodes) {
+        List<Node> result = new ArrayList<>();
+
+        for (Node node : nodes) {
+            NodeList children = node.getChildNodes();
+            for (int i = 0; i < children.getLength(); i++) {
+                List<Node> child = new ArrayList<>();
+                child.add(children.item(i));
+                result.add(children.item(i));
+                result.addAll(getAllDescendants(child));
+            }
+        }
+
+        return unique(result);
     }
 }
