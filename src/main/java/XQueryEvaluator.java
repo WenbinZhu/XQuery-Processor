@@ -32,5 +32,6 @@ public class XQueryEvaluator {
         List<Node> queryResult = visitor.visit(tree);
 
         // Write query result to xml file
+        System.out.println(queryResult);
     }
 }

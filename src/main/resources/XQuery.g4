@@ -3,11 +3,14 @@ grammar XQuery;
 
 /* Parser Rules */
 
-ap      : 'doc("' file '")' '/' rp          # ApChildren
-        | 'doc("' file '")' '//' rp         # ApDescendants
+ap      : doc '/' rp                        # ApChildren
+        | doc '//' rp                       # ApDescendants
         ;
 
-file    : WORD ('.' WORD)*
+doc     : 'doc("' fname '")'                # XmlDoc
+        ;
+
+fname   : WORD ('.' WORD)*                  # FileName
         ;
 
 rp      : WORD                              # TagName

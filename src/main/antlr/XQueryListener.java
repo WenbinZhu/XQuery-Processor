@@ -33,15 +33,29 @@ public interface XQueryListener extends ParseTreeListener {
 	 */
 	void exitApDescendants(XQueryParser.ApDescendantsContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link XQueryParser#file}.
+	 * Enter a parse tree produced by the {@code XmlDoc}
+	 * labeled alternative in {@link XQueryParser#doc}.
 	 * @param ctx the parse tree
 	 */
-	void enterFile(XQueryParser.FileContext ctx);
+	void enterXmlDoc(XQueryParser.XmlDocContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link XQueryParser#file}.
+	 * Exit a parse tree produced by the {@code XmlDoc}
+	 * labeled alternative in {@link XQueryParser#doc}.
 	 * @param ctx the parse tree
 	 */
-	void exitFile(XQueryParser.FileContext ctx);
+	void exitXmlDoc(XQueryParser.XmlDocContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code FileName}
+	 * labeled alternative in {@link XQueryParser#fname}.
+	 * @param ctx the parse tree
+	 */
+	void enterFileName(XQueryParser.FileNameContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code FileName}
+	 * labeled alternative in {@link XQueryParser#fname}.
+	 * @param ctx the parse tree
+	 */
+	void exitFileName(XQueryParser.FileNameContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code Descendants}
 	 * labeled alternative in {@link XQueryParser#rp}.

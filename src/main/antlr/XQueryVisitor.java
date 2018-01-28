@@ -26,11 +26,19 @@ public interface XQueryVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitApDescendants(XQueryParser.ApDescendantsContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link XQueryParser#file}.
+	 * Visit a parse tree produced by the {@code XmlDoc}
+	 * labeled alternative in {@link XQueryParser#doc}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitFile(XQueryParser.FileContext ctx);
+	T visitXmlDoc(XQueryParser.XmlDocContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code FileName}
+	 * labeled alternative in {@link XQueryParser#fname}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFileName(XQueryParser.FileNameContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code Descendants}
 	 * labeled alternative in {@link XQueryParser#rp}.

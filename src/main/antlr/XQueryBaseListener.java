@@ -40,13 +40,25 @@ public class XQueryBaseListener implements XQueryListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFile(XQueryParser.FileContext ctx) { }
+	@Override public void enterXmlDoc(XQueryParser.XmlDocContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFile(XQueryParser.FileContext ctx) { }
+	@Override public void exitXmlDoc(XQueryParser.XmlDocContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFileName(XQueryParser.FileNameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFileName(XQueryParser.FileNameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
