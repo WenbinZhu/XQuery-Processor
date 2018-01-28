@@ -324,22 +324,6 @@ public class XQueryParser extends Parser {
 			super.copyFrom(ctx);
 		}
 	}
-	public static class DescendantsContext extends RpContext {
-		public DescendantsContext(RpContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof XQueryListener ) ((XQueryListener)listener).enterDescendants(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof XQueryListener ) ((XQueryListener)listener).exitDescendants(this);
-		}
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof XQueryVisitor ) return ((XQueryVisitor<? extends T>)visitor).visitDescendants(this);
-			else return visitor.visitChildren(this);
-		}
-	}
 	public static class TagNameContext extends RpContext {
 		public TerminalNode WORD() { return getToken(XQueryParser.WORD, 0); }
 		public TagNameContext(RpContext ctx) { copyFrom(ctx); }
@@ -485,6 +469,22 @@ public class XQueryParser extends Parser {
 			else return visitor.visitChildren(this);
 		}
 	}
+	public static class CurrentContext extends RpContext {
+		public CurrentContext(RpContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof XQueryListener ) ((XQueryListener)listener).enterCurrent(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof XQueryListener ) ((XQueryListener)listener).exitCurrent(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof XQueryVisitor ) return ((XQueryVisitor<? extends T>)visitor).visitCurrent(this);
+			else return visitor.visitChildren(this);
+		}
+	}
 	public static class RpDescendantsContext extends RpContext {
 		public List<RpContext> rp() {
 			return getRuleContexts(RpContext.class);
@@ -569,7 +569,7 @@ public class XQueryParser extends Parser {
 				break;
 			case T__4:
 				{
-				_localctx = new DescendantsContext(_localctx);
+				_localctx = new CurrentContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
 				setState(35);

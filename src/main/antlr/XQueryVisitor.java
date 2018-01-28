@@ -40,13 +40,6 @@ public interface XQueryVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFileName(XQueryParser.FileNameContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code Descendants}
-	 * labeled alternative in {@link XQueryParser#rp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitDescendants(XQueryParser.DescendantsContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code TagName}
 	 * labeled alternative in {@link XQueryParser#rp}.
 	 * @param ctx the parse tree
@@ -102,6 +95,13 @@ public interface XQueryVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitRpConcat(XQueryParser.RpConcatContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code Current}
+	 * labeled alternative in {@link XQueryParser#rp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCurrent(XQueryParser.CurrentContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code RpDescendants}
 	 * labeled alternative in {@link XQueryParser#rp}.

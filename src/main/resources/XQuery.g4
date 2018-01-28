@@ -15,7 +15,7 @@ fname   : WORD ('.' WORD)*                  # FileName
 
 rp      : WORD                              # TagName
         | '*'                               # Children
-        | '.'                               # Descendants
+        | '.'                               # Current
         | '..'                              # Parent
         | 'text()'                          # Text
         | '@' WORD                          # Attribute
