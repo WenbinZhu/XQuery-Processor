@@ -152,7 +152,12 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitRpDescendants(XQueryParser.RpDescendantsContext ctx) {
-        return super.visitRpDescendants(ctx);
+        visit(ctx.rp(0));
+        curNodes.addAll(getAllDescendants(curNodes));
+        List<Node> nodes = visit(ctx.rp(1));
+        curNodes = nodes;
+
+        return unique(nodes);
     }
 
     @Override
@@ -167,17 +172,39 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitFilterNot(XQueryParser.FilterNotContext ctx) {
-        return super.visitFilterNot(ctx);
+        List<Node> backup = curNodes;
+        List<Node> nodes0 = visit(ctx.filter());
+        curNodes = backup;
+        curNodes.removeAll(nodes0);
+        return curNodes;
     }
 
     @Override
     public List<Node> visitFilterOr(XQueryParser.FilterOrContext ctx) {
-        return super.visitFilterOr(ctx);
+        List<Node> backup = curNodes;
+        List<Node> result = visit(ctx.filter(0));
+        curNodes = backup;
+        result.addAll(visit(ctx.filter(1)));
+
+        curNodes = unique(result);
+        return curNodes;
     }
 
     @Override
     public List<Node> visitFilterAnd(XQueryParser.FilterAndContext ctx) {
-        return super.visitFilterAnd(ctx);
+        List<Node> backup = curNodes;
+        List<Node> nodes0 = visit(ctx.filter(0));
+        curNodes = backup;
+        List<Node> nodes1 = visit(ctx.filter(1));
+
+        List<Node> result = new ArrayList<>();
+        for (Node node : nodes0) {
+            if (nodes1.contains(node)) {
+                result.add(node);
+            }
+        }
+        curNodes = result;
+        return curNodes;
     }
 
     @Override
@@ -187,7 +214,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitFilterParentheses(XQueryParser.FilterParenthesesContext ctx) {
-        return super.visitFilterParentheses(ctx);
+        return visit(ctx.filter());
     }
 
     @Override
