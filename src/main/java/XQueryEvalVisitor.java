@@ -181,7 +181,21 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitFilterEqual(XQueryParser.FilterEqualContext ctx) {
-        return super.visitFilterEqual(ctx);
+        List<Node> backup = new ArrayList<>(curNodes);
+        List<Node> nodes0 = visit(ctx.rp(0));
+        curNodes = backup;
+        List<Node> nodes1 = visit(ctx.rp(1));
+
+        List<Node> result =  new ArrayList<>();
+        for (Node i : nodes0) {
+            for (Node j : nodes1) {
+                if (i.equals(j)) {
+                    result.add(i);
+                }
+            }
+        }
+        curNodes = result;
+        return result;
     }
 
     @Override
@@ -238,7 +252,21 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitFilterIs(XQueryParser.FilterIsContext ctx) {
-        return super.visitFilterIs(ctx);
+        List<Node> backup = new ArrayList<>(curNodes);
+        List<Node> nodes0 = visit(ctx.rp(0));
+        curNodes = backup;
+        List<Node> nodes1 = visit(ctx.rp(1));
+
+        List<Node> result =  new ArrayList<>();
+        for (Node i : nodes0) {
+            for (Node j : nodes1) {
+                if (i == j) {
+                    result.add(i);
+                }
+            }
+        }
+        curNodes = result;
+        return result;
     }
 
     private List<Node> unique(List<Node> nodes) {
