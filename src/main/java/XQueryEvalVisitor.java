@@ -189,7 +189,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         List<Node> result =  new ArrayList<>();
         for (Node i : nodes0) {
             for (Node j : nodes1) {
-                if (i.equals(j)) {
+                if (i.isEqualNode(j)) {
                     result.add(i);
                 }
             }
@@ -260,7 +260,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         List<Node> result =  new ArrayList<>();
         for (Node i : nodes0) {
             for (Node j : nodes1) {
-                if (i == j) {
+                if (i.isSameNode(j)) {
                     result.add(i);
                 }
             }
