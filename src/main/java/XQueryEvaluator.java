@@ -25,6 +25,8 @@ public class XQueryEvaluator {
 
     @SuppressWarnings("deprecated")
     public static void main(String[] args) throws Exception {
+        System.out.println(System.getProperty("user.dir"));
+
         if (args.length != 2) {
             System.out.println("Input query file and output file must be provided.");
             System.exit(1);

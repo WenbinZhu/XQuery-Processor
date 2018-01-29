@@ -85,12 +85,20 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitParent(XQueryParser.ParentContext ctx) {
-        return super.visitParent(ctx);
+        List<Node> result = getAllAscendant(curNodes);
+        curNodes = result;
+        return result;
     }
 
     @Override
     public List<Node> visitAttribute(XQueryParser.AttributeContext ctx) {
-        return super.visitAttribute(ctx);
+        List<Node> result = new ArrayList<>();
+        for (Node node : curNodes) {
+            if (node.getAttributes().getNamedItem(ctx.WORD().toString()) != null)
+                result.add(node);
+        }
+        curNodes = result;
+        return result;
     }
 
     @Override
@@ -104,22 +112,36 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitRpParentheses(XQueryParser.RpParenthesesContext ctx) {
-        return super.visitRpParentheses(ctx);
+        return visit(ctx.rp());
     }
 
     @Override
     public List<Node> visitText(XQueryParser.TextContext ctx) {
-        return super.visitText(ctx);
+        List<Node> result = new ArrayList<>();
+        for (Node node : curNodes) {
+            if (node.getNodeType() == Node.TEXT_NODE)
+                result.add(node);
+        }
+        curNodes = result;
+        return result;
     }
 
     @Override
     public List<Node> visitChildren(XQueryParser.ChildrenContext ctx) {
-        return super.visitChildren(ctx);
+        List<Node> result = getAllDescendants(curNodes);
+        curNodes = result;
+        return result;
     }
 
     @Override
     public List<Node> visitRpConcat(XQueryParser.RpConcatContext ctx) {
-        return super.visitRpConcat(ctx);
+        List<Node> backup = curNodes;
+        List<Node> result = visit(ctx.rp(0));
+        curNodes = backup;
+        result.addAll(visit(ctx.rp(1)));
+        result = unique(result);
+        curNodes = result;
+        return result;
     }
 
     @Override
@@ -192,6 +214,16 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
                 result.add(children.item(i));
                 result.addAll(getAllDescendants(child));
             }
+        }
+
+        return unique(result);
+    }
+
+    private List<Node> getAllAscendant(List<Node> nodes) {
+        List<Node> result = new ArrayList<>();
+
+        for (Node node : nodes) {
+            result.add(node.getParentNode());
         }
 
         return unique(result);
