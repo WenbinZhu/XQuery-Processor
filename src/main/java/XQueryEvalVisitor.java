@@ -141,7 +141,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitRpConcat(XQueryParser.RpConcatContext ctx) {
-        List<Node> backup = curNodes;
+        List<Node> backup = new ArrayList<>(curNodes);
         List<Node> result = visit(ctx.rp(0));
         curNodes = backup;
         result.addAll(visit(ctx.rp(1)));
@@ -172,7 +172,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitFilterNot(XQueryParser.FilterNotContext ctx) {
-        List<Node> backup = curNodes;
+        List<Node> backup = new ArrayList<>(curNodes);
         List<Node> nodes0 = visit(ctx.filter());
         curNodes = backup;
         curNodes.removeAll(nodes0);
@@ -181,7 +181,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitFilterOr(XQueryParser.FilterOrContext ctx) {
-        List<Node> backup = curNodes;
+        List<Node> backup = new ArrayList<>(curNodes);
         List<Node> result = visit(ctx.filter(0));
         curNodes = backup;
         result.addAll(visit(ctx.filter(1)));
@@ -192,7 +192,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitFilterAnd(XQueryParser.FilterAndContext ctx) {
-        List<Node> backup = curNodes;
+        List<Node> backup = new ArrayList<>(curNodes);
         List<Node> nodes0 = visit(ctx.filter(0));
         curNodes = backup;
         List<Node> nodes1 = visit(ctx.filter(1));
