@@ -4,6 +4,7 @@ import main.antlr.XQueryParser;
 import main.antlr.XQueryBaseVisitor;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -94,7 +95,9 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     public List<Node> visitAttribute(XQueryParser.AttributeContext ctx) {
         List<Node> result = new ArrayList<>();
         for (Node node : curNodes) {
-            if (node.getAttributes().getNamedItem(ctx.WORD().getText()) != null) {
+            NamedNodeMap nodeMap = node.getAttributes();
+
+            if (nodeMap != null && nodeMap.getNamedItem(ctx.WORD().getText()) != null) {
                 result.add(node);
             }
         }
@@ -120,8 +123,12 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     public List<Node> visitText(XQueryParser.TextContext ctx) {
         List<Node> result = new ArrayList<>();
         for (Node node : curNodes) {
-            if (node.getNodeType() == Node.TEXT_NODE)
-                result.add(node);
+            NodeList children = node.getChildNodes();
+
+            for (int i = 0; i < children.getLength(); i++) {
+                if (children.item(i).getNodeType() == Node.TEXT_NODE)
+                    result.add(children.item(i));
+            }
         }
         curNodes = result;
         return result;

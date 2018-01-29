@@ -23,7 +23,6 @@ import javax.xml.transform.stream.StreamResult;
 
 public class XQueryEvaluator {
 
-    @SuppressWarnings("deprecated")
     public static void main(String[] args) throws Exception {
         System.out.println(System.getProperty("user.dir"));
 
