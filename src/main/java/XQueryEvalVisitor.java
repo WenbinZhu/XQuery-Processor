@@ -31,6 +31,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     public List<Node> visitApDescendants(XQueryParser.ApDescendantsContext ctx) {
         visit(ctx.doc());
         curNodes.addAll(getAllDescendants(curNodes));
+
         return visit(ctx.rp());
     }
 
@@ -86,8 +87,9 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitParent(XQueryParser.ParentContext ctx) {
-        List<Node> result = getParent(curNodes);
+        List<Node> result = getParents(curNodes);
         curNodes = result;
+
         return result;
     }
 
@@ -131,6 +133,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
             }
         }
         curNodes = result;
+
         return result;
     }
 
@@ -143,6 +146,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
             }
         }
         curNodes = result;
+
         return result;
     }
 
@@ -154,6 +158,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         result.addAll(visit(ctx.rp(1)));
         result = unique(result);
         curNodes = result;
+
         return result;
     }
 
@@ -180,7 +185,6 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
             if (!visit(ctx.filter()).isEmpty())
                 result.add(node);
         }
-
         curNodes = result;
 
         return result;
@@ -193,7 +197,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         curNodes = backup;
         List<Node> nodes1 = visit(ctx.rp(1));
 
-        List<Node> result =  new ArrayList<>();
+        List<Node> result = new ArrayList<>();
         for (Node i : nodes0) {
             for (Node j : nodes1) {
                 if (i.isEqualNode(j)) {
@@ -202,6 +206,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
             }
         }
         curNodes = result;
+
         return result;
     }
 
@@ -211,6 +216,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         List<Node> nodes0 = visit(ctx.filter());
         curNodes = backup;
         curNodes.removeAll(nodes0);
+
         return new ArrayList<>(curNodes);
     }
 
@@ -241,6 +247,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
             }
         }
         curNodes = result;
+
         return result;
     }
 
@@ -264,7 +271,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         curNodes = backup;
         List<Node> nodes1 = visit(ctx.rp(1));
 
-        List<Node> result =  new ArrayList<>();
+        List<Node> result = new ArrayList<>();
         for (Node i : nodes0) {
             for (Node j : nodes1) {
                 if (i.isSameNode(j)) {
@@ -273,6 +280,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
             }
         }
         curNodes = result;
+
         return result;
     }
 
@@ -306,7 +314,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         return unique(result);
     }
 
-    private List<Node> getParent(List<Node> nodes) {
+    private List<Node> getParents(List<Node> nodes) {
         List<Node> result = new ArrayList<>();
 
         for (Node node : nodes) {
