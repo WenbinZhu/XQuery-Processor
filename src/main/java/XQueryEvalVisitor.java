@@ -85,7 +85,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitParent(XQueryParser.ParentContext ctx) {
-        List<Node> result = getAllAscendant(curNodes);
+        List<Node> result = getParent(curNodes);
         curNodes = result;
         return result;
     }
@@ -94,8 +94,9 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     public List<Node> visitAttribute(XQueryParser.AttributeContext ctx) {
         List<Node> result = new ArrayList<>();
         for (Node node : curNodes) {
-            if (node.getAttributes().getNamedItem(ctx.WORD().toString()) != null)
+            if (node.getAttributes().getNamedItem(ctx.WORD().getText()) != null) {
                 result.add(node);
+            }
         }
         curNodes = result;
         return result;
@@ -128,7 +129,12 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitChildren(XQueryParser.ChildrenContext ctx) {
-        List<Node> result = getAllDescendants(curNodes);
+        List<Node> result = new ArrayList<>();
+        for (Node node : curNodes) {
+            for (int i = 0; i < node.getChildNodes().getLength(); ++i) {
+                result.add(node.getChildNodes().item(i));
+            }
+        }
         curNodes = result;
         return result;
     }
@@ -219,7 +225,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         return unique(result);
     }
 
-    private List<Node> getAllAscendant(List<Node> nodes) {
+    private List<Node> getParent(List<Node> nodes) {
         List<Node> result = new ArrayList<>();
 
         for (Node node : nodes) {
