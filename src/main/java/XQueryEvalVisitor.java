@@ -62,7 +62,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitCurrent(XQueryParser.CurrentContext ctx) {
-        return curNodes;
+        return new ArrayList<>(curNodes);
     }
 
     @Override
@@ -105,10 +105,10 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     @Override
     public List<Node> visitRpChildren(XQueryParser.RpChildrenContext ctx) {
         visit(ctx.rp(0));
-        List<Node> nodes = visit(ctx.rp(1));
-        curNodes = nodes;
+        List<Node> result = visit(ctx.rp(1));
+        curNodes = result;
 
-        return unique(nodes);
+        return result;
     }
 
     @Override
@@ -162,7 +162,21 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitRpFilter(XQueryParser.RpFilterContext ctx) {
-        return super.visitRpFilter(ctx);
+        List<Node> rpNodes = visit(ctx.rp());
+        List<Node> result = new ArrayList<>();
+
+        for (Node node : rpNodes) {
+            List<Node> single = new ArrayList<>();
+            single.add(node);
+            curNodes = single;
+
+            if (!visit(ctx.filter()).isEmpty())
+                result.add(node);
+        }
+
+        curNodes = result;
+
+        return result;
     }
 
     @Override
@@ -176,7 +190,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         List<Node> nodes0 = visit(ctx.filter());
         curNodes = backup;
         curNodes.removeAll(nodes0);
-        return curNodes;
+        return new ArrayList<>(curNodes);
     }
 
     @Override
@@ -186,8 +200,10 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         curNodes = backup;
         result.addAll(visit(ctx.filter(1)));
 
-        curNodes = unique(result);
-        return curNodes;
+        result = unique(result);
+        curNodes = result;
+
+        return result;
     }
 
     @Override
@@ -204,12 +220,15 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
             }
         }
         curNodes = result;
-        return curNodes;
+        return result;
     }
 
     @Override
     public List<Node> visitFilterRp(XQueryParser.FilterRpContext ctx) {
-        return super.visitFilterRp(ctx);
+        List<Node> result = visit(ctx.rp());
+        curNodes = result;
+
+        return result;
     }
 
     @Override
