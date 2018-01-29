@@ -2,6 +2,6 @@
 UCSD CSE 232B project - An XQuery execution engine
 
 ### Progress:
-- [ ] XPath evaluator
+- [x] XPath evaluator
 - [ ] XQuery evaluator
 - [ ] Join operator optimization
