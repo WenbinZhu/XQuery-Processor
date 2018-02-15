@@ -24,8 +24,6 @@ import javax.xml.transform.stream.StreamResult;
 public class XQueryEvaluator {
 
     public static void main(String[] args) throws Exception {
-        System.out.println(System.getProperty("user.dir"));
-
         if (args.length != 2) {
             System.out.println("Input query file and output file must be provided.");
             System.exit(1);
@@ -39,7 +37,7 @@ public class XQueryEvaluator {
         XQueryLexer lexer = new XQueryLexer(ais);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         XQueryParser parser = new XQueryParser(tokens);
-        ParseTree tree = parser.ap();
+        ParseTree tree = parser.xq();
         XQueryEvalVisitor visitor = new XQueryEvalVisitor();
         List<Node> queryResult = visitor.visit(tree);
 
@@ -50,12 +48,19 @@ public class XQueryEvaluator {
         Document doc = docBuilder.newDocument();
 
         // Add query result nodes to xml object
-        Node resultNode = doc.createElement("Result");
-        for (Node node : queryResult) {
-            Node copy = doc.importNode(node, true);
-            resultNode.appendChild(copy);
+        if (queryResult.size() == 1) {
+            Node root = doc.importNode(queryResult.get(0), true);
+            doc.appendChild(root);
+        } else if (queryResult.size() > 0) {
+            Node resultNode = doc.createElement("Result");
+            for (Node node : queryResult) {
+                if (node != null) {
+                    Node copy = doc.importNode(node, true);
+                    resultNode.appendChild(copy);
+                }
+            }
+            doc.appendChild(resultNode);
         }
-        doc.appendChild(resultNode);
 
         // Generate output xml file
         TransformerFactory tfFactory = TransformerFactory.newInstance();

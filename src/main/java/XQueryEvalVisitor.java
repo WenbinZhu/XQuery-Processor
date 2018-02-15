@@ -22,6 +22,131 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     private List<Node> curNodes = new ArrayList<>();
 
     @Override
+    public List<Node> visitXqChildren(XQueryParser.XqChildrenContext ctx) {
+        return super.visitXqChildren(ctx);
+    }
+
+    @Override
+    public List<Node> visitXqAp(XQueryParser.XqApContext ctx) {
+        return super.visitXqAp(ctx);
+    }
+
+    @Override
+    public List<Node> visitXqDescendants(XQueryParser.XqDescendantsContext ctx) {
+        return super.visitXqDescendants(ctx);
+    }
+
+    @Override
+    public List<Node> visitXqVariable(XQueryParser.XqVariableContext ctx) {
+        return super.visitXqVariable(ctx);
+    }
+
+    @Override
+    public List<Node> visitVar(XQueryParser.VarContext ctx) {
+        return super.visitVar(ctx);
+    }
+
+    @Override
+    public List<Node> visitXqLetClause(XQueryParser.XqLetClauseContext ctx) {
+        return super.visitXqLetClause(ctx);
+    }
+
+    @Override
+    public List<Node> visitXqConcat(XQueryParser.XqConcatContext ctx) {
+        return super.visitXqConcat(ctx);
+    }
+
+    @Override
+    public List<Node> visitXqEnclosedTags(XQueryParser.XqEnclosedTagsContext ctx) {
+        return super.visitXqEnclosedTags(ctx);
+    }
+
+    @Override
+    public List<Node> visitXqStartTag(XQueryParser.XqStartTagContext ctx) {
+        return super.visitXqStartTag(ctx);
+    }
+
+    @Override
+    public List<Node> visitXqEndTag(XQueryParser.XqEndTagContext ctx) {
+        return super.visitXqEndTag(ctx);
+    }
+
+    @Override
+    public List<Node> visitXqParentheses(XQueryParser.XqParenthesesContext ctx) {
+        return super.visitXqParentheses(ctx);
+    }
+
+    @Override
+    public List<Node> visitXqFLWR(XQueryParser.XqFLWRContext ctx) {
+        return super.visitXqFLWR(ctx);
+    }
+
+    @Override
+    public List<Node> visitXqString(XQueryParser.XqStringContext ctx) {
+        return super.visitXqString(ctx);
+    }
+
+    @Override
+    public List<Node> visitForClause(XQueryParser.ForClauseContext ctx) {
+        return super.visitForClause(ctx);
+    }
+
+    @Override
+    public List<Node> visitLetClause(XQueryParser.LetClauseContext ctx) {
+        return super.visitLetClause(ctx);
+    }
+
+    @Override
+    public List<Node> visitReturnClause(XQueryParser.ReturnClauseContext ctx) {
+        return super.visitReturnClause(ctx);
+    }
+
+    @Override
+    public List<Node> visitWhereClause(XQueryParser.WhereClauseContext ctx) {
+        return super.visitWhereClause(ctx);
+    }
+
+    @Override
+    public List<Node> visitCondOr(XQueryParser.CondOrContext ctx) {
+        return super.visitCondOr(ctx);
+    }
+
+    @Override
+    public List<Node> visitCondAnd(XQueryParser.CondAndContext ctx) {
+        return super.visitCondAnd(ctx);
+    }
+
+    @Override
+    public List<Node> visitCondParentheses(XQueryParser.CondParenthesesContext ctx) {
+        return super.visitCondParentheses(ctx);
+    }
+
+    @Override
+    public List<Node> visitCondEmpty(XQueryParser.CondEmptyContext ctx) {
+        return super.visitCondEmpty(ctx);
+    }
+
+    @Override
+    public List<Node> visitCondSome(XQueryParser.CondSomeContext ctx) {
+        return super.visitCondSome(ctx);
+    }
+
+    @Override
+    public List<Node> visitCondIs(XQueryParser.CondIsContext ctx) {
+        return super.visitCondIs(ctx);
+    }
+
+    @Override
+    public List<Node> visitCondNot(XQueryParser.CondNotContext ctx) {
+        return super.visitCondNot(ctx);
+    }
+
+    @Override
+    public List<Node> visitCondEqual(XQueryParser.CondEqualContext ctx) {
+        return super.visitCondEqual(ctx);
+    }
+
+    @Override
     public List<Node> visitApChildren(XQueryParser.ApChildrenContext ctx) {
         visit(ctx.doc());
         return visit(ctx.rp());
