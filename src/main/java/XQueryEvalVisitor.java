@@ -10,16 +10,15 @@ import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
+    private Document doc = null;
     private List<Node> curNodes = new ArrayList<>();
+    private Map<String, List<Node>> varMap = new HashMap<>();
 
     @Override
     public List<Node> visitXqChildren(XQueryParser.XqChildrenContext ctx) {
@@ -28,7 +27,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitXqAp(XQueryParser.XqApContext ctx) {
-        return super.visitXqAp(ctx);
+        return visit(ctx.ap());
     }
 
     @Override
@@ -38,17 +37,27 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitXqVariable(XQueryParser.XqVariableContext ctx) {
-        return super.visitXqVariable(ctx);
+        if (!varMap.containsKey(ctx.getText()))
+            return new ArrayList<>();
+
+        return new ArrayList<>(varMap.get(ctx.getText()));
     }
 
     @Override
     public List<Node> visitVar(XQueryParser.VarContext ctx) {
-        return super.visitVar(ctx);
+        // TODO: make sure this is correct
+        return new ArrayList<>();
     }
 
     @Override
     public List<Node> visitXqLetClause(XQueryParser.XqLetClauseContext ctx) {
-        return super.visitXqLetClause(ctx);
+        Map<String, List<Node>> backup = new HashMap<>(varMap);
+
+        visit(ctx.letClause());
+        List<Node> result = visit(ctx.xq());
+        varMap = backup;
+
+        return result;
     }
 
     @Override
@@ -73,7 +82,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitXqParentheses(XQueryParser.XqParenthesesContext ctx) {
-        return super.visitXqParentheses(ctx);
+        return visit(ctx.xq());
     }
 
     @Override
@@ -83,17 +92,30 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitXqString(XQueryParser.XqStringContext ctx) {
-        return super.visitXqString(ctx);
+        String text = ctx.getText();
+        text = text.substring(1, text.length() - 1);
+        Node textNode = doc.createTextNode(text);
+
+        List<Node> result = new ArrayList<>();
+        result.add(textNode);
+
+        return result;
     }
 
     @Override
     public List<Node> visitForClause(XQueryParser.ForClauseContext ctx) {
-        return super.visitForClause(ctx);
+        return new ArrayList<>();
     }
 
     @Override
     public List<Node> visitLetClause(XQueryParser.LetClauseContext ctx) {
-        return super.visitLetClause(ctx);
+        List<XQueryParser.VarContext> vars = ctx.var();
+
+        for (int i = 0; i < vars.size(); i++) {
+            varMap.put(vars.get(i).getText(), visit(ctx.xq(i)));
+        }
+
+        return new ArrayList<>();
     }
 
     @Override
@@ -171,7 +193,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             docFactory.setIgnoringElementContentWhitespace(true);
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-            Document doc = docBuilder.parse(xmlFile);
+            doc = docBuilder.parse(xmlFile);
             result.add(doc);
             curNodes = result;
         } catch (Exception e) {

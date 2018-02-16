@@ -1,5 +1,5 @@
 <result> {
-    for $a in document("j_caesar.xml")//ACT
+    for $a in doc("j_caesar.xml")//ACT
     return <scenes> {
         for $b in $a//SCENE
         where empty (
