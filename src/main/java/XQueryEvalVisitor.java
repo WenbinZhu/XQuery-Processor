@@ -82,7 +82,10 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitXqConcat(XQueryParser.XqConcatContext ctx) {
-        return super.visitXqConcat(ctx);
+        List<Node> result = visit(ctx.xq(0));
+        result.addAll(visit(ctx.xq(1)));
+
+        return result;
     }
 
     @Override
