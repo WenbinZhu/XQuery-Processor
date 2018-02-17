@@ -16,13 +16,19 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
-    private Document doc = null;
+    private Document outputDoc;
     private List<Node> curNodes = new ArrayList<>();
     private Map<String, List<Node>> varMap = new HashMap<>();
 
-    @Override
-    public List<Node> visitXqChildren(XQueryParser.XqChildrenContext ctx) {
-        return super.visitXqChildren(ctx);
+    XQueryEvalVisitor() {
+        try {
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+            outputDoc = docBuilder.newDocument();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     @Override
@@ -31,14 +37,28 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     }
 
     @Override
+    public List<Node> visitXqChildren(XQueryParser.XqChildrenContext ctx) {
+        visit(ctx.xq());
+        List<Node> result = visit(ctx.rp());
+        curNodes = result;
+
+        return result;
+    }
+
+    @Override
     public List<Node> visitXqDescendants(XQueryParser.XqDescendantsContext ctx) {
-        return super.visitXqDescendants(ctx);
+        visit(ctx.xq());
+        curNodes.addAll(getAllDescendants(curNodes));
+        List<Node> nodes = visit(ctx.rp());
+        curNodes = nodes;
+
+        return unique(nodes);
     }
 
     @Override
     public List<Node> visitXqVariable(XQueryParser.XqVariableContext ctx) {
         if (!varMap.containsKey(ctx.getText()))
-            return new ArrayList<>();
+            return Collections.emptyList();
 
         return new ArrayList<>(varMap.get(ctx.getText()));
     }
@@ -46,7 +66,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     @Override
     public List<Node> visitVar(XQueryParser.VarContext ctx) {
         // TODO: make sure this is correct
-        return new ArrayList<>();
+        return Collections.emptyList();
     }
 
     @Override
@@ -67,7 +87,23 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitXqEnclosedTags(XQueryParser.XqEnclosedTagsContext ctx) {
-        return super.visitXqEnclosedTags(ctx);
+        String startTag = ((XQueryParser.XqStartTagContext) ctx.startTag()).WORD().getText();
+        String endTag = ((XQueryParser.XqEndTagContext) ctx.endTag()).WORD().getText();
+
+        if (!startTag.equals(endTag)) {
+            throw new RuntimeException("Start tag does not match end tag");
+        }
+
+        Node resultNode = outputDoc.createElement(startTag);
+        for (Node node : visit(ctx.xq())) {
+            Node child = outputDoc.importNode(node, true);
+            resultNode.appendChild(child);
+        }
+
+        List<Node> result = new ArrayList<>();
+        result.add(resultNode);
+
+        return result;
     }
 
     @Override
@@ -87,14 +123,47 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitXqFLWR(XQueryParser.XqFLWRContext ctx) {
-        return super.visitXqFLWR(ctx);
+        List<Node> result = new ArrayList<>();
+        Map<String, List<Node>> backup = new HashMap<>(varMap);
+
+        visitFLWR(ctx, 0, result);
+        varMap = backup;
+
+        return result;
+    }
+
+    private void visitFLWR(XQueryParser.XqFLWRContext ctx, int k, List<Node> result) {
+        if (k == ctx.forClause().var().size()) {
+            if (ctx.letClause() != null) {
+                visit(ctx.letClause());
+            }
+            if (ctx.whereClause() != null && visit(ctx.whereClause()) == null) {
+                return;
+            }
+
+            result.addAll(visit(ctx.returnClause()));
+            return;
+        }
+
+        String var = ctx.forClause().var(k).getText();
+        List<Node> bind = visit(ctx.forClause().xq(k));
+
+        for (Node node : bind) {
+            Map<String, List<Node>> backup = new HashMap<>(varMap);
+            List<Node> single = new ArrayList<>();
+
+            single.add(node);
+            varMap.put(var, single);
+            visitFLWR(ctx, k + 1, result);
+            varMap = backup;
+        }
     }
 
     @Override
     public List<Node> visitXqString(XQueryParser.XqStringContext ctx) {
         String text = ctx.getText();
         text = text.substring(1, text.length() - 1);
-        Node textNode = doc.createTextNode(text);
+        Node textNode = outputDoc.createTextNode(text);
 
         List<Node> result = new ArrayList<>();
         result.add(textNode);
@@ -104,7 +173,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitForClause(XQueryParser.ForClauseContext ctx) {
-        return new ArrayList<>();
+        return Collections.emptyList();
     }
 
     @Override
@@ -115,17 +184,17 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
             varMap.put(vars.get(i).getText(), visit(ctx.xq(i)));
         }
 
-        return new ArrayList<>();
-    }
-
-    @Override
-    public List<Node> visitReturnClause(XQueryParser.ReturnClauseContext ctx) {
-        return super.visitReturnClause(ctx);
+        return Collections.emptyList();
     }
 
     @Override
     public List<Node> visitWhereClause(XQueryParser.WhereClauseContext ctx) {
-        return super.visitWhereClause(ctx);
+        return visit(ctx.cond());
+    }
+
+    @Override
+    public List<Node> visitReturnClause(XQueryParser.ReturnClauseContext ctx) {
+        return visit(ctx.xq());
     }
 
     @Override
@@ -193,8 +262,8 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             docFactory.setIgnoringElementContentWhitespace(true);
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-            doc = docBuilder.parse(xmlFile);
-            result.add(doc);
+            Document inputDoc = docBuilder.parse(xmlFile);
+            result.add(inputDoc);
             curNodes = result;
         } catch (Exception e) {
             e.printStackTrace();
