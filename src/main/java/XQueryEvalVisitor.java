@@ -111,12 +111,12 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitXqStartTag(XQueryParser.XqStartTagContext ctx) {
-        return super.visitXqStartTag(ctx);
+        return visit(ctx.WORD());
     }
 
     @Override
     public List<Node> visitXqEndTag(XQueryParser.XqEndTagContext ctx) {
-        return super.visitXqEndTag(ctx);
+        return visit(ctx.WORD() );
     }
 
     @Override
@@ -202,42 +202,130 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitCondOr(XQueryParser.CondOrContext ctx) {
-        return super.visitCondOr(ctx);
+        List<Node> backup = new ArrayList<>(curNodes);
+        List<Node> nodes0 = visit(ctx.cond(0));
+        curNodes = backup;
+        List<Node> nodes1 = visit(ctx.cond(1));
+
+        curNodes = null;
+        if (nodes0.size() > 0 || nodes1.size() > 0) {
+            curNodes = Collections.emptyList();
+        }
+        return curNodes;
     }
 
     @Override
     public List<Node> visitCondAnd(XQueryParser.CondAndContext ctx) {
-        return super.visitCondAnd(ctx);
+        List<Node> backup = new ArrayList<>(curNodes);
+        List<Node> nodes0 = visit(ctx.cond(0));
+        curNodes = backup;
+        List<Node> nodes1 = visit(ctx.cond(1));
+
+        curNodes = null;
+        List<Node> result = new ArrayList<>();
+        if (nodes0.size() > 0 && nodes1.size() > 0) {
+            curNodes = Collections.emptyList();
+        }
+        return curNodes;
     }
 
     @Override
     public List<Node> visitCondParentheses(XQueryParser.CondParenthesesContext ctx) {
-        return super.visitCondParentheses(ctx);
+        return visit(ctx.cond());
     }
 
     @Override
     public List<Node> visitCondEmpty(XQueryParser.CondEmptyContext ctx) {
-        return super.visitCondEmpty(ctx);
+        List<Node> nodes = visit(ctx.xq());
+        curNodes = null;
+        if (nodes.isEmpty()) {
+            curNodes = Collections.emptyList();
+        }
+        return curNodes;
     }
 
     @Override
     public List<Node> visitCondSome(XQueryParser.CondSomeContext ctx) {
-        return super.visitCondSome(ctx);
+        LinkedList<Node> result = new LinkedList<>();
+        if (visitCondSomeHelper(ctx, 0)){
+            curNodes = Collections.emptyList();
+        } else {
+            curNodes = null;
+        }
+        return curNodes;
+    }
+
+    private boolean visitCondSomeHelper(XQueryParser.CondSomeContext ctx, int k){
+        int numFor = ctx.var().size();
+        if (k == ctx.var().size()){
+            return visit(ctx.cond()) != null;
+        }
+        else{
+            String key = ctx.var(k).getText();
+            List<Node> valueList = visit(ctx.xq(k));
+
+            for (Node node: valueList){
+                HashMap<String, List<Node>> backup = new HashMap<>(varMap);
+
+                LinkedList<Node> value = new LinkedList<>(); value.add(node);
+                varMap.put(key, value);
+                if (k+1 <= numFor)
+                    if (visitCondSomeHelper(ctx, k + 1)) {
+                        varMap = backup;
+                        return true;
+                    }
+                varMap = backup;
+            }
+        }
+        return false;
     }
 
     @Override
     public List<Node> visitCondIs(XQueryParser.CondIsContext ctx) {
-        return super.visitCondIs(ctx);
+        List<Node> backup = new ArrayList<>(curNodes);
+        List<Node> nodes0 = visit(ctx.xq(0));
+        curNodes = backup;
+        List<Node> nodes1 = visit(ctx.xq(1));
+
+        curNodes = null;
+        for (Node i : nodes0) {
+            for (Node j : nodes1) {
+                if (i.isSameNode(j)) {
+                    curNodes = Collections.emptyList();
+                    return curNodes;
+                }
+            }
+        }
+        return curNodes;
     }
 
     @Override
     public List<Node> visitCondNot(XQueryParser.CondNotContext ctx) {
-        return super.visitCondNot(ctx);
+        List<Node> nodes = visit(ctx.cond());
+        curNodes = null;
+        if (nodes.isEmpty()) {
+            curNodes = Collections.emptyList();
+        }
+        return curNodes;
     }
 
     @Override
     public List<Node> visitCondEqual(XQueryParser.CondEqualContext ctx) {
-        return super.visitCondEqual(ctx);
+        List<Node> backup = new ArrayList<>(curNodes);
+        List<Node> nodes0 = visit(ctx.xq(0));
+        curNodes = backup;
+        List<Node> nodes1 = visit(ctx.xq(1));
+
+        curNodes = null;
+        for (Node i : nodes0) {
+            for (Node j : nodes1) {
+                if (i.isEqualNode(j)) {
+                    curNodes = Collections.emptyList();
+                    return curNodes;
+                }
+            }
+        }
+        return curNodes;
     }
 
     @Override
