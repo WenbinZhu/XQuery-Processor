@@ -222,12 +222,11 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     public List<Node> visitCondAnd(XQueryParser.CondAndContext ctx) {
         List<Node> backup = new ArrayList<>(curNodes);
         List<Node> nodes0 = visit(ctx.cond(0));
-        curNodes = backup;
+        curNodes = new ArrayList<>(backup);
         List<Node> nodes1 = visit(ctx.cond(1));
+        curNodes = backup;
 
-        curNodes = null;
-        List<Node> result = new ArrayList<>();
-        if (nodes0.size() > 0 && nodes1.size() > 0) {
+        if (nodes0 != null && nodes1 != null) {
             curNodes = Collections.emptyList();
         }
         return curNodes;
@@ -240,27 +239,29 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitCondEmpty(XQueryParser.CondEmptyContext ctx) {
+        List<Node> backup = new ArrayList<>(curNodes);
         List<Node> nodes = visit(ctx.xq());
-        curNodes = null;
-        if (nodes.isEmpty()) {
-            curNodes = Collections.emptyList();
+        curNodes = backup;
+
+        if (nodes == null) {
+            return Collections.emptyList();
         }
-        return curNodes;
+        return null;
     }
 
     @Override
     public List<Node> visitCondSome(XQueryParser.CondSomeContext ctx) {
-        LinkedList<Node> result = new LinkedList<>();
-        if (visitCondSomeHelper(ctx, 0)) {
-            curNodes = Collections.emptyList();
-        } else {
-            curNodes = null;
+        List<Node> backup = new ArrayList<>(curNodes);
+        boolean flag = visitCondSomeHelper(ctx, 0);
+        curNodes = backup;
+
+        if (flag) {
+            return Collections.emptyList();
         }
-        return curNodes;
+        return null;
     }
 
     private boolean visitCondSomeHelper(XQueryParser.CondSomeContext ctx, int k){
-        int numFor = ctx.var().size();
         if (k == ctx.var().size()){
             return visit(ctx.cond()) != null;
         }
@@ -273,11 +274,12 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
                 LinkedList<Node> value = new LinkedList<>(); value.add(node);
                 varMap.put(key, value);
-                if (k+1 <= numFor)
+                if (k + 1 <= ctx.var().size()) {
                     if (visitCondSomeHelper(ctx, k + 1)) {
                         varMap = backup;
                         return true;
                     }
+                }
                 varMap = backup;
             }
         }
@@ -288,29 +290,30 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     public List<Node> visitCondIs(XQueryParser.CondIsContext ctx) {
         List<Node> backup = new ArrayList<>(curNodes);
         List<Node> nodes0 = visit(ctx.xq(0));
-        curNodes = backup;
+        curNodes = new ArrayList<>(backup);
         List<Node> nodes1 = visit(ctx.xq(1));
+        curNodes = backup;
 
-        curNodes = null;
-        for (Node i : nodes0) {
-            for (Node j : nodes1) {
-                if (i.isSameNode(j)) {
-                    curNodes = Collections.emptyList();
-                    return curNodes;
+        for (Node n0 : nodes0) {
+            for (Node n1 : nodes1) {
+                if (n0.isSameNode(n1)) {
+                    return Collections.emptyList();
                 }
             }
         }
-        return curNodes;
+        return null;
     }
 
     @Override
     public List<Node> visitCondNot(XQueryParser.CondNotContext ctx) {
+        List<Node> backup = new ArrayList<>(curNodes);
         List<Node> nodes = visit(ctx.cond());
-        curNodes = null;
-        if (nodes.isEmpty()) {
-            curNodes = Collections.emptyList();
+        curNodes = backup;
+
+        if (nodes == null) {
+            return Collections.emptyList();
         }
-        return curNodes;
+        return null;
     }
 
     @Override
@@ -328,7 +331,6 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
                 }
             }
         }
-
         return null;
     }
 
