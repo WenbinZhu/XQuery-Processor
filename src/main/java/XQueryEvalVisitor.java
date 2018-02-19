@@ -65,7 +65,6 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitVar(XQueryParser.VarContext ctx) {
-        // TODO: make sure this is correct
         return Collections.emptyList();
     }
 
