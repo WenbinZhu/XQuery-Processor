@@ -229,6 +229,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         if (nodes0 != null && nodes1 != null) {
             curNodes = Collections.emptyList();
         }
+
         return curNodes;
     }
 
@@ -243,9 +244,10 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         List<Node> nodes = visit(ctx.xq());
         curNodes = backup;
 
-        if (nodes == null) {
+        if (nodes.size() == 0) {
             return Collections.emptyList();
         }
+
         return null;
     }
 
@@ -258,18 +260,19 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         if (flag) {
             return Collections.emptyList();
         }
+
         return null;
     }
 
     private boolean visitCondSomeHelper(XQueryParser.CondSomeContext ctx, int k){
-        if (k == ctx.var().size()){
+        if (k == ctx.var().size()) {
             return visit(ctx.cond()) != null;
         }
         else{
             String key = ctx.var(k).getText();
             List<Node> valueList = visit(ctx.xq(k));
 
-            for (Node node: valueList){
+            for (Node node: valueList) {
                 HashMap<String, List<Node>> backup = new HashMap<>(varMap);
 
                 LinkedList<Node> value = new LinkedList<>(); value.add(node);
@@ -283,6 +286,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
                 varMap = backup;
             }
         }
+
         return false;
     }
 
@@ -301,6 +305,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
                 }
             }
         }
+
         return null;
     }
 
@@ -313,6 +318,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         if (nodes == null) {
             return Collections.emptyList();
         }
+
         return null;
     }
 
@@ -331,6 +337,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
                 }
             }
         }
+
         return null;
     }
 

@@ -46,6 +46,7 @@ public class XQueryEvaluator {
         DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
         Document doc = docBuilder.newDocument();
+        doc.setXmlStandalone(true);
 
         // Add query result nodes to xml object
         if (queryResult.size() == 1) {
@@ -66,6 +67,7 @@ public class XQueryEvaluator {
         TransformerFactory tfFactory = TransformerFactory.newInstance();
         Transformer transformer = tfFactory.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty(OutputKeys.STANDALONE, "yes");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
         DOMSource source = new DOMSource(doc);
         StreamResult result = new StreamResult(new FileOutputStream(outputFile));
