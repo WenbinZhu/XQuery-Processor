@@ -38,7 +38,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitXqChildren(XQueryParser.XqChildrenContext ctx) {
-        visit(ctx.xq());
+        curNodes = visit(ctx.xq());
         List<Node> result = visit(ctx.rp());
         curNodes = result;
 
@@ -47,7 +47,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitXqDescendants(XQueryParser.XqDescendantsContext ctx) {
-        visit(ctx.xq());
+        curNodes = visit(ctx.xq());
         curNodes.addAll(getAllDescendants(curNodes));
         List<Node> nodes = visit(ctx.rp());
         curNodes = nodes;
@@ -82,8 +82,11 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitXqConcat(XQueryParser.XqConcatContext ctx) {
+        List<Node> backup = new ArrayList<>(curNodes);
         List<Node> result = visit(ctx.xq(0));
+        curNodes = new ArrayList<>(backup);
         result.addAll(visit(ctx.xq(1)));
+        curNodes = backup;
 
         return result;
     }
@@ -204,14 +207,15 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     public List<Node> visitCondOr(XQueryParser.CondOrContext ctx) {
         List<Node> backup = new ArrayList<>(curNodes);
         List<Node> nodes0 = visit(ctx.cond(0));
-        curNodes = backup;
+        curNodes = new ArrayList<>(backup);
         List<Node> nodes1 = visit(ctx.cond(1));
+        curNodes = backup;
 
-        curNodes = null;
-        if (nodes0.size() > 0 || nodes1.size() > 0) {
-            curNodes = Collections.emptyList();
+        if (nodes0 != null || nodes1 != null) {
+            return Collections.emptyList();
         }
-        return curNodes;
+
+        return null;
     }
 
     @Override
@@ -247,7 +251,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     @Override
     public List<Node> visitCondSome(XQueryParser.CondSomeContext ctx) {
         LinkedList<Node> result = new LinkedList<>();
-        if (visitCondSomeHelper(ctx, 0)){
+        if (visitCondSomeHelper(ctx, 0)) {
             curNodes = Collections.emptyList();
         } else {
             curNodes = null;
@@ -312,20 +316,20 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     @Override
     public List<Node> visitCondEqual(XQueryParser.CondEqualContext ctx) {
         List<Node> backup = new ArrayList<>(curNodes);
-        List<Node> nodes0 = visit(ctx.xq(0));
+        List<Node> nodes0 = new LinkedList<>(visit(ctx.xq(0)));
+        curNodes = new ArrayList<>(backup);
+        List<Node> nodes1 = new LinkedList<>(visit(ctx.xq(1)));
         curNodes = backup;
-        List<Node> nodes1 = visit(ctx.xq(1));
 
-        curNodes = null;
-        for (Node i : nodes0) {
-            for (Node j : nodes1) {
-                if (i.isEqualNode(j)) {
-                    curNodes = Collections.emptyList();
-                    return curNodes;
+        for (Node n0 : nodes0) {
+            for (Node n1 : nodes1) {
+                if (n0.isEqualNode(n1)) {
+                    return Collections.emptyList();
                 }
             }
         }
-        return curNodes;
+
+        return null;
     }
 
     @Override
