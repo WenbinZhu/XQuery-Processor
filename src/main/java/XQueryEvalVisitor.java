@@ -267,15 +267,17 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         if (k == ctx.var().size()) {
             return visit(ctx.cond()) != null;
         }
-        else{
+        else {
             String key = ctx.var(k).getText();
             List<Node> valueList = visit(ctx.xq(k));
 
             for (Node node: valueList) {
                 HashMap<String, List<Node>> backup = new HashMap<>(varMap);
 
-                LinkedList<Node> value = new LinkedList<>(); value.add(node);
+                LinkedList<Node> value = new LinkedList<>();
+                value.add(node);
                 varMap.put(key, value);
+
                 if (k + 1 <= ctx.var().size()) {
                     if (visitCondSomeHelper(ctx, k + 1)) {
                         varMap = backup;
