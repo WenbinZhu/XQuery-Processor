@@ -226,10 +226,10 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         curNodes = backup;
 
         if (nodes0 != null && nodes1 != null) {
-            curNodes = Collections.emptyList();
+            return Collections.emptyList();
         }
 
-        return curNodes;
+        return null;
     }
 
     @Override
@@ -533,9 +533,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitFilterNot(XQueryParser.FilterNotContext ctx) {
-        List<Node> backup = new ArrayList<>(curNodes);
         List<Node> nodes0 = visit(ctx.filter());
-        curNodes = backup;
         curNodes.removeAll(nodes0);
 
         return new ArrayList<>(curNodes);
