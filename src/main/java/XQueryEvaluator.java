@@ -6,7 +6,10 @@ import main.antlr.XQueryParser;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -80,6 +83,7 @@ public class XQueryEvaluator {
         }
 
         String rewrote = getQueryResultFromVisitor(ais, rewriteVisitor);
+        System.out.println("===" + rewrote + "===");
         ais = new ANTLRInputStream(rewrote);
 
         return getQueryResultFromVisitor(ais, evalVisitor);
