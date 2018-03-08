@@ -10,9 +10,9 @@ import java.util.List;
 class XQueryTable {
     public int index;
 
-    public List<String> vars;           // variables
+    public List<String> vars;           // variable names
     public List<String> ranges;         // range of each variable
-    public List<String> conditions;     // conditions only about this table (where $aj eq "John")
+    public List<String> conditions;     // conditions only for this table (e.g where $aj eq "John")
 
     public XQueryTable(int index) {
         this.index = index;
@@ -21,32 +21,60 @@ class XQueryTable {
         conditions = new ArrayList<>();
     }
 
+    public void addVariable(String var, String range) {
+        vars.add(var);
+        ranges.add(range);
+    }
+
+    public void addCondition(String condition) {
+        conditions.add(condition);
+    }
+
+    /**
+     * Convert the XQuery table into string representation.
+     * For example, the for loop below contains two variables $b and $tb in same XQuery table.
+     *
+     * for $b in doc("input")/book,
+     *       $tb in $b/title,
+     *   ...
+     *
+     * Then toString() method will return:
+     *
+     *  for $b in doc("input")/book,
+     *      $tb in $b/title
+     *  return <tuple> <b> {$b} </b> <tb> {$tb} </tb> </tuple>
+     */
     public String toString() {
-        String s = "";
+        StringBuilder sb = new StringBuilder();
 
         // for clause
-        s += "for " + vars.get(0) + " in " + ranges.get(0);
+        sb.append("for " + vars.get(0) + " in " + ranges.get(0));
         for (int i = 1; i < vars.size(); ++i) {
-            s += ",\n" + vars.get(i) + " in " + ranges.get(i);
+            sb.append(",\n\t" + vars.get(i) + " in " + ranges.get(i));
         }
-        s += "\n";
+        sb.append("\n");
 
         // where clause
         if (conditions.size() > 0) {
-            s += "where " + conditions.get(0);
+            sb.append("where " + conditions.get(0));
             for (int i = 1; i < conditions.size(); ++i) {
-                s += ",\n" + conditions.get(i);
+                sb.append(",\n" + conditions.get(i));
             }
-            s += "\n";
+            sb.append("\n");
         }
 
         // return clause
-        s  += "return <tuple>\n";
+        sb.append("return <tuple>\n");
+
         for (int i = 0; i < vars.size(); ++i) {
-            String var = vars.get(i);
-            s += "<" + var.substring(1) + ">{" + var + "}</" + var.substring(1) + ">\n";
+            String varText = vars.get(i).substring(1);  // strip '$'
+            sb.append("\t<" + varText + ">{" + vars.get(i) + "}</" + varText + ">");
+            if (i < vars.size() - 1) {
+                sb.append(",");
+            }
+            sb.append("\n");
         }
-        s += "</tuple>";
-        return s;
+        sb.append("</tuple>");
+        return sb.toString();
     }
 }
