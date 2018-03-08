@@ -1,7 +1,7 @@
-for $b in doc("input")/book,
-$a in doc("input")/entry,
+for $b in doc("book.xml")//book,
+$a in doc("book.xml")//author,
 $tb in $b/title,
-$ta in $a/title
+$ta in $a/last
 where $tb eq $ta
 return
 <book-with-prices>

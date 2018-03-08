@@ -64,7 +64,7 @@ class XQueryTable {
         }
 
         // return clause
-        sb.append("return <tuple>\n");
+        sb.append("return <tuple>{\n");
 
         for (int i = 0; i < vars.size(); ++i) {
             String varText = vars.get(i).substring(1);  // strip '$'
@@ -74,7 +74,7 @@ class XQueryTable {
             }
             sb.append("\n");
         }
-        sb.append("</tuple>");
+        sb.append("}</tuple>");
         return sb.toString();
     }
 }

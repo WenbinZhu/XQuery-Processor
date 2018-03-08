@@ -3,10 +3,7 @@ package main.java;
 import main.antlr.XQueryParser;
 import main.antlr.XQueryBaseVisitor;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -162,6 +159,91 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
             visitFLWR(ctx, k + 1, result);
             varMap = backup;
         }
+    }
+
+    @Override
+    public List<Node> visitXqJoinClause(XQueryParser.XqJoinClauseContext ctx) {
+        return visit(ctx.joinClause());
+    }
+
+    @Override
+    public List<Node> visitJoinClause(XQueryParser.JoinClauseContext ctx) {
+        List<Node> leftNodes = unique(visit(ctx.xq(0)));
+        List<Node> rightNodes = unique(visit(ctx.xq(1)));
+
+        List<String> leftAttrs = new ArrayList<>();
+        List<String> rightAttrs = new ArrayList<>();
+        for (int i = 0; i < ctx.attrList(0).attrName().size(); ++i) {
+            leftAttrs.add(ctx.attrList(0).attrName().get(i).getText());
+            rightAttrs.add(ctx.attrList(1).attrName().get(i).getText());
+        }
+
+        List<Node> result = new ArrayList<>();
+
+        if (leftAttrs.isEmpty()) {
+            // Case 1: Cartesian product
+            for (Node leftNode : leftNodes) {
+                NodeList leftValues = leftNode.getChildNodes();
+                for (Node rightNode : rightNodes) {
+                    NodeList rightValues = rightNode.getChildNodes();
+                    Element element = outputDoc.createElement("tuple");
+                    for (int i = 0; i < leftValues.getLength(); ++i) {
+                        element.appendChild(leftValues.item(i).cloneNode(true));
+                    }
+                    for (int i = 0; i < rightValues.getLength(); ++i) {
+                        element.appendChild(rightValues.item(i).cloneNode(true));
+                    }
+                    result.add(element);
+                }
+            }
+        } else {
+            // Case 2: join
+
+            // build index on right table
+            Map<String, List<Node>> tag2candidates = new HashMap<>();
+            for (Node rightNode : rightNodes) {
+                String index = createIndexOnAttrs(rightNode, rightAttrs);
+                if (!tag2candidates.containsKey(index)) {
+                    tag2candidates.put(index, new ArrayList<>());
+                }
+                tag2candidates.get(index).add(rightNode);
+            }
+
+            for (Node leftNode : leftNodes) {
+                String index = createIndexOnAttrs(leftNode, leftAttrs);
+
+                if (tag2candidates.containsKey(index)) {
+                    NodeList leftValues = leftNode.getChildNodes();
+
+                    for (Node rightNode : tag2candidates.get(index)) {
+                        NodeList rightValues = rightNode.getChildNodes();
+                        Element element = outputDoc.createElement("tuple");
+                        for (int i = 0; i < leftValues.getLength(); ++i) {
+                            element.appendChild(leftValues.item(i).cloneNode(true));
+                        }
+                        for (int i = 0; i < rightValues.getLength(); ++i) {
+                            element.appendChild(rightValues.item(i).cloneNode(true));
+                        }
+                        result.add(element);
+                    }
+                }
+            }
+
+        }
+        return result;
+    }
+
+    private String createIndexOnAttrs(Node node, List<String> attrs) {
+        NodeList rightValues = node.getChildNodes();
+        Map<String, String> m = new HashMap<>();
+        for (int i = 0; i < rightValues.getLength(); ++i) {
+            m.put(rightValues.item(i).getNodeName(), rightValues.item(i).getTextContent());
+        }
+        String index = "";
+        for (int i = 0; i < attrs.size(); ++i) {
+            index += m.get(attrs.get(i)) + "@";
+        }
+        return index;
     }
 
     @Override
