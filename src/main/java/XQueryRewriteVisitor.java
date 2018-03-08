@@ -7,17 +7,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javafx.util.Pair;
 
 public class XQueryRewriteVisitor extends XQueryBaseVisitor<String> {
 
-    // collect XQuery tables in for clause
+    // All XQuery tables.
     private List<XQueryTable> tables = new ArrayList<>();
 
-    // map from variable name to XQuery table index
+    // Map from variable name to index of corresponding XQuery tables.
     private Map<String, Integer> var2tableId = new HashMap<>();
 
-    // record "eq" between different tables
+    // Record "eq" relationship between different XQuery tables.
     private List<Pair<String, String>> joinConditions = new ArrayList<>();
 
     @Override
@@ -61,6 +62,10 @@ public class XQueryRewriteVisitor extends XQueryBaseVisitor<String> {
         if (ctx.whereClause() != null) {
             visit(ctx.whereClause());
         }
+        if (joinConditions.isEmpty()) {
+            // If there is no join operation between tables, don't rewrite query.
+            return null;
+        }
         return visit(ctx.returnClause());
     }
 
@@ -85,26 +90,25 @@ public class XQueryRewriteVisitor extends XQueryBaseVisitor<String> {
             String var = ctx.var().get(i).getText();
             String range = ctx.xq().get(i).getText();
 
+            // 1. Find the id of XQuery table this variable belongs to.
             int id = -1;
             if (range.startsWith("doc")) {
-                // create a new XQuery Table
+                // create a new XQuery Table for new independent variable
                 id = tables.size();
                 tables.add(new XQueryTable(id));
             } else {
-                // find existent XQuery table
-                String base = range.split("/")[0];
-                id = var2tableId.get(base);
+                // find existent XQuery table by the independent variable it references
+                String baseVar = range.split("/")[0];
+                id = var2tableId.get(baseVar);
             }
 
-            // insert variable in tables and var2tableId
+            // 2. Insert variable in corresponding XQuery table and update map from variable to table id.
             XQueryTable table = tables.get(id);
-            table.vars.add(var);
-            table.ranges.add(range);
+            table.addVariable(var, range);
             var2tableId.put(var, id);
         }
         return "";
     }
-
 
 
     @Override
@@ -116,7 +120,7 @@ public class XQueryRewriteVisitor extends XQueryBaseVisitor<String> {
         String query = "";
 
         String forString = "for $tuple in ";
-        JoinPlanner jp = new JoinPlanner(tables, var2tableId, joinConditions);
+        JoinPlanner jp = new JoinPlanner(tables, joinConditions);
         forString += jp.joinTables();
 
         // TODO(handle independent tables): 处理没有join的table中的变量
@@ -152,22 +156,25 @@ public class XQueryRewriteVisitor extends XQueryBaseVisitor<String> {
 
     @Override
     public String visitCondEqual(XQueryParser.CondEqualContext ctx) {
+        // Get left and right parameters in expression "lhs eq rhs".
         String lhs = ctx.xq(0).getText();
         String rhs = ctx.xq(1).getText();
 
-        if (lhs.startsWith("$") && rhs.startsWith("$") && var2tableId.get(lhs) != var2tableId.get(rhs)) {
-            // two variables are from two different tables
+        if (lhs.startsWith("$") && rhs.startsWith("$") && !var2tableId.get(lhs).equals(var2tableId.get(rhs))) {
+            // Case 1: parameters are two variables from two different tables (join between tables).
             joinConditions.add(new Pair<>(lhs, rhs));
         }
-        // either two variables are in same table or one is constant
-        else if (lhs.startsWith("$")) {
-            int id = var2tableId.get(lhs);
-            tables.get(id).conditions.add(lhs + " eq " + rhs);
-        } else if (rhs.startsWith("$")) {
-            int id = var2tableId.get(rhs);
-            tables.get(id).conditions.add(rhs + " eq " + lhs);
+        else {
+            // Case 2: either both parameters are variables from same table or one is a constant.
+            if (lhs.startsWith("$")) {
+                int id = var2tableId.get(lhs);
+                tables.get(id).addCondition(lhs + " eq " + rhs);
+            } else if (rhs.startsWith("$")) {
+                int id = var2tableId.get(rhs);
+                tables.get(id).addCondition(rhs + " eq " + lhs);
+            }
         }
-        return super.visitCondEqual(ctx);
+        return "";
     }
 
     @Override

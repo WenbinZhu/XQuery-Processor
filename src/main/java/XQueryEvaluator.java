@@ -83,7 +83,7 @@ public class XQueryEvaluator {
         }
 
         String rewrote = getQueryResultFromVisitor(ais, rewriteVisitor);
-        System.out.println("===" + rewrote + "===");
+        System.out.println("===\n" + rewrote + "\n===");
         ais = new ANTLRInputStream(rewrote);
 
         return getQueryResultFromVisitor(ais, evalVisitor);
