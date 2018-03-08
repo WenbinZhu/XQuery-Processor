@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Result>
+  <triplet>
+    <b1>
+      <title>TCP/IP Illustrated</title>
+    </b1>
+    <b2>
+      <title>TCP/IP Illustrated</title>
+    </b2>
+  </triplet>
+  <triplet>
+    <b1>
+      <title>TCP/IP Illustrated</title>
+    </b1>
+    <b2>
+      <title>TCP/IP Illustrated</title>
+    </b2>
+  </triplet>
+  <triplet>
+    <b1>
+      <title>TCP/IP Illustrated</title>
+    </b1>
+    <b2>
+      <title>Advanced Programming in the Unix environment</title>
+    </b2>
+  </triplet>
+  <triplet>
+    <b1>
+      <title>TCP/IP Illustrated</title>
+    </b1>
+    <b2>
+      <title>Advanced Programming in the Unix environment</title>
+    </b2>
+  </triplet>
+  <triplet>
+    <b1>
+      <title>Advanced Programming in the Unix environment</title>
+    </b1>
+    <b2>
+      <title>TCP/IP Illustrated</title>
+    </b2>
+  </triplet>
+  <triplet>
+    <b1>
+      <title>Advanced Programming in the Unix environment</title>
+    </b1>
+    <b2>
+      <title>TCP/IP Illustrated</title>
+    </b2>
+  </triplet>
+  <triplet>
+    <b1>
+      <title>Advanced Programming in the Unix environment</title>
+    </b1>
+    <b2>
+      <title>Advanced Programming in the Unix environment</title>
+    </b2>
+  </triplet>
+  <triplet>
+    <b1>
+      <title>Advanced Programming in the Unix environment</title>
+    </b1>
+    <b2>
+      <title>Advanced Programming in the Unix environment</title>
+    </b2>
+  </triplet>
+</Result>

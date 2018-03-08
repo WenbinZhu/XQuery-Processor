@@ -41,6 +41,7 @@ public class XQueryEvaluator {
 
         // Generate output xml object
         System.out.println("Query result: " + queryResult);
+        System.out.println(queryResult.size());
         DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
         Document doc = docBuilder.newDocument();
