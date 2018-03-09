@@ -7,9 +7,9 @@ xq          : var                               # XqVariable
             | StringConstant                    # XqString
             | ap                                # XqAp
             | '(' xq ')'                        # XqParentheses
-            | xq ',' xq                         # XqConcat
             | xq '/' rp                         # XqChildren
             | xq '//' rp                        # XqDescendants
+            | xq ',' xq                         # XqConcat
             | startTag ('{')* xq ('}')* endTag  # XqEnclosedTags
             | forClause letClause? whereClause?
               returnClause                      # XqFLWR
@@ -38,7 +38,8 @@ returnClause: 'return' xq
 joinClause  : 'join' '(' xq ',' xq ','  attrList ',' attrList ')'
             ;
 
-attrList    : '[' attrName (',' attrName)* ']'
+attrList    : '[' ']'
+            | '[' attrName (',' attrName)* ']'
             ;
 
 attrName    : WORD

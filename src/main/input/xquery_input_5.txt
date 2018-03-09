@@ -1,11 +1,11 @@
-for $b in doc("book.xml")//book,
+for $b in doc("book.xml")//author,
 $a in doc("book.xml")//author,
-$tb in $b/title,
+$tb in $b/first,
 $ta in $a/last
 where $tb eq $ta
 return
-<book-with-prices>
+<book-with-name>
 { $tb,
-<price-review>{ $a/price }</price-review>,
-<price>{ $b/price }</price> }
-</book-with-prices>
+<first>{ $b/first }</first>,
+<last>{ $a/last }</last> }
+</book-with-name>

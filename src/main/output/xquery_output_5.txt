@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<book-with-prices>
-  <title>Abiteboul</title>
-  <price-review/>
-  <price>
-    <price>65.95</price>
-  </price>
-</book-with-prices>
