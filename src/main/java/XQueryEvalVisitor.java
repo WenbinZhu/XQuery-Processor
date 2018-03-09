@@ -136,6 +136,9 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     private void visitFLWR(XQueryParser.XqFLWRContext ctx, int k, List<Node> result) {
         if (k == ctx.forClause().var().size()) {
+
+            System.out.println(varMap);
+
             if (ctx.letClause() != null) {
                 visit(ctx.letClause());
             }
@@ -168,32 +171,19 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitJoinClause(XQueryParser.JoinClauseContext ctx) {
-        List<Node> leftNodes = unique(visit(ctx.xq(0)));
-        List<Node> rightNodes = unique(visit(ctx.xq(1)));
+        List<Node> leftTuples = unique(visit(ctx.xq(0)));
+        List<Node> rightTuples = unique(visit(ctx.xq(1)));
 
-        List<String> leftAttrs = new ArrayList<>();
-        List<String> rightAttrs = new ArrayList<>();
-        for (int i = 0; i < ctx.attrList(0).attrName().size(); ++i) {
-            leftAttrs.add(ctx.attrList(0).attrName().get(i).getText());
-            rightAttrs.add(ctx.attrList(1).attrName().get(i).getText());
-        }
+        List<String> leftAttrs = getAttrList(ctx.attrList(0));
+        List<String> rightAttrs = getAttrList(ctx.attrList(1));
 
         List<Node> result = new ArrayList<>();
 
         if (leftAttrs.isEmpty()) {
             // Case 1: Cartesian product
-            for (Node leftNode : leftNodes) {
-                NodeList leftValues = leftNode.getChildNodes();
-                for (Node rightNode : rightNodes) {
-                    NodeList rightValues = rightNode.getChildNodes();
-                    Element element = outputDoc.createElement("tuple");
-                    for (int i = 0; i < leftValues.getLength(); ++i) {
-                        element.appendChild(leftValues.item(i).cloneNode(true));
-                    }
-                    for (int i = 0; i < rightValues.getLength(); ++i) {
-                        element.appendChild(rightValues.item(i).cloneNode(true));
-                    }
-                    result.add(element);
+            for (Node leftTuple : leftTuples) {
+                for (Node rightTuple : rightTuples) {
+                    result.add(mergeTuples(leftTuple, rightTuple));
                 }
             }
         } else {
@@ -201,7 +191,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
             // build index on right table
             Map<String, List<Node>> tag2candidates = new HashMap<>();
-            for (Node rightNode : rightNodes) {
+            for (Node rightNode : rightTuples) {
                 String index = createIndexOnAttrs(rightNode, rightAttrs);
                 if (!tag2candidates.containsKey(index)) {
                     tag2candidates.put(index, new ArrayList<>());
@@ -209,21 +199,12 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
                 tag2candidates.get(index).add(rightNode);
             }
 
-            for (Node leftNode : leftNodes) {
-                String index = createIndexOnAttrs(leftNode, leftAttrs);
-
+            // for each left tuple, only join with right tuples with same index
+            for (Node leftTuple : leftTuples) {
+                String index = createIndexOnAttrs(leftTuple, leftAttrs);
                 if (tag2candidates.containsKey(index)) {
-                    NodeList leftValues = leftNode.getChildNodes();
-
-                    for (Node rightNode : tag2candidates.get(index)) {
-                        NodeList rightValues = rightNode.getChildNodes();
-                        Element element = outputDoc.createElement("tuple");
-                        for (int i = 0; i < leftValues.getLength(); ++i) {
-                            element.appendChild(leftValues.item(i).cloneNode(true));
-                        }
-                        for (int i = 0; i < rightValues.getLength(); ++i) {
-                            element.appendChild(rightValues.item(i).cloneNode(true));
-                        }
+                    for (Node rightTuple : tag2candidates.get(index)) {
+                        Element element = mergeTuples(leftTuple, rightTuple);
                         result.add(element);
                     }
                 }
@@ -231,6 +212,27 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
         }
         return result;
+    }
+
+    private List<String> getAttrList(XQueryParser.AttrListContext ctx) {
+        List<String> attrs = new ArrayList<>();
+        for (int i = 0; i < ctx.attrName().size(); ++i) {
+            attrs.add(ctx.attrName().get(i).getText());
+        }
+        return attrs;
+    }
+
+    private Element mergeTuples(Node leftTuple, Node rightTuple) {
+        Element element = outputDoc.createElement("tuple");
+        NodeList leftValues = leftTuple.getChildNodes();
+        for (int i = 0; i < leftValues.getLength(); ++i) {
+            element.appendChild(leftValues.item(i).cloneNode(true));
+        }
+        NodeList rightValues = rightTuple.getChildNodes();
+        for (int i = 0; i < rightValues.getLength(); ++i) {
+            element.appendChild(rightValues.item(i).cloneNode(true));
+        }
+        return element;
     }
 
     private String createIndexOnAttrs(Node node, List<String> attrs) {

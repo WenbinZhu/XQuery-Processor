@@ -18,7 +18,7 @@ public class XQueryRewriteVisitor extends XQueryBaseVisitor<String> {
     // Map from variable name to index of corresponding XQuery tables.
     private Map<String, Integer> var2tableId = new HashMap<>();
 
-    // Record "eq" relationship between different XQuery tables.
+    // "eq" relationship between different XQuery tables.
     private List<Pair<String, String>> joinConditions = new ArrayList<>();
 
     @Override
@@ -61,10 +61,6 @@ public class XQueryRewriteVisitor extends XQueryBaseVisitor<String> {
         visit(ctx.forClause());
         if (ctx.whereClause() != null) {
             visit(ctx.whereClause());
-        }
-        if (joinConditions.isEmpty()) {
-            // If there is no join operation between tables, don't rewrite query.
-            return null;
         }
         return visit(ctx.returnClause());
     }
@@ -113,23 +109,20 @@ public class XQueryRewriteVisitor extends XQueryBaseVisitor<String> {
 
     @Override
     public String visitReturnClause(XQueryParser.ReturnClauseContext ctx) {
-        //
-        // TODO(handle independent tables): 处理没有join的table
-        //
-
         String query = "";
 
-        String forString = "for $tuple in ";
+        // for clause
+        String forClause = "for $tuple in ";
         JoinPlanner jp = new JoinPlanner(tables, joinConditions);
-        forString += jp.joinTables();
+        forClause += jp.joinTables();
 
-        // TODO(handle independent tables): 处理没有join的table中的变量
-        String returnString = ctx.getText();
-        returnString = returnString.replace("return", "return\n");
-        returnString = returnString.replaceAll("\\$([A-Za-z0-9_]+)", "\\$tuple/$1/*");
-        returnString = returnString.replaceAll(",", ",\n");
+        // return clause
+        String returnClause = ctx.getText();
+        returnClause = returnClause.replace("return", "return\n");
+        returnClause = returnClause.replaceAll("\\$([A-Za-z0-9_]+)", "\\$tuple/$1/*");
+        returnClause = returnClause.replaceAll(",", ",\n");
 
-        query += forString + "\n" + returnString;
+        query += forClause + "\n" + returnClause;
         return query;
     }
 
