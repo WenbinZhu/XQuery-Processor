@@ -192,7 +192,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
             // build index on right table
             Map<String, List<Node>> tag2candidates = new HashMap<>();
             for (Node rightNode : rightTuples) {
-                String index = createIndexOnAttrs(rightNode, rightAttrs);
+                String index = createIndexOnAttr(rightNode, rightAttrs.get(0));
                 if (!tag2candidates.containsKey(index)) {
                     tag2candidates.put(index, new ArrayList<>());
                 }
@@ -201,15 +201,15 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
             // for each left tuple, only join with right tuples with same index
             for (Node leftTuple : leftTuples) {
-                String index = createIndexOnAttrs(leftTuple, leftAttrs);
+                String index = createIndexOnAttr(leftTuple, leftAttrs.get(0));
                 if (tag2candidates.containsKey(index)) {
                     for (Node rightTuple : tag2candidates.get(index)) {
-                        Element element = mergeTuples(leftTuple, rightTuple);
-                        result.add(element);
+                        if (matchWith(leftTuple, rightTuple, leftAttrs, rightAttrs)) {
+                            result.add(mergeTuples(leftTuple, rightTuple));
+                        }
                     }
                 }
             }
-
         }
         return result;
     }
@@ -222,7 +222,8 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         return attrs;
     }
 
-    private Element mergeTuples(Node leftTuple, Node rightTuple) {
+    // Merge children nodes in two input tuples into one output tuple.
+    private Node mergeTuples(Node leftTuple, Node rightTuple) {
         Element element = outputDoc.createElement("tuple");
         NodeList leftValues = leftTuple.getChildNodes();
         for (int i = 0; i < leftValues.getLength(); ++i) {
@@ -235,17 +236,38 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         return element;
     }
 
-    private String createIndexOnAttrs(Node node, List<String> attrs) {
-        NodeList rightValues = node.getChildNodes();
-        Map<String, String> m = new HashMap<>();
-        for (int i = 0; i < rightValues.getLength(); ++i) {
-            m.put(rightValues.item(i).getNodeName(), rightValues.item(i).getTextContent());
+    private String createIndexOnAttr(Node node, String attr) {
+        String index = null;
+        NodeList values = node.getChildNodes();
+        for (int i = 0; i < values.getLength(); ++i) {
+            if (values.item(i).getNodeName() == attr) {
+                index = values.item(i).getTextContent();
+            }
         }
-        String index = "";
-        for (int i = 0; i < attrs.size(); ++i) {
-            index += m.get(attrs.get(i)) + "@";
-        }
+        assert index != null;
         return index;
+    }
+
+    private boolean matchWith(Node leftTuple, Node rightTuple, List<String> leftAttrs, List<String> rightAttrs) {
+        Map<String, String> leftValueMap = new HashMap<>();
+        NodeList leftValues = leftTuple.getChildNodes();
+        for (int i = 0; i < leftValues.getLength(); ++i) {
+            Node item = leftValues.item(i);
+            leftValueMap.put(item.getNodeName(), item.getTextContent());
+        }
+        Map<String, String> rightValueMap = new HashMap<>();
+        NodeList rightValues = rightTuple.getChildNodes();
+        for (int i = 0; i < leftValues.getLength(); ++i) {
+            Node item = rightValues.item(i);
+            rightValueMap.put(item.getNodeName(), item.getTextContent());
+        }
+
+        for (int i = 0; i < leftAttrs.size(); ++i) {
+            if (!leftValueMap.get(leftAttrs.get(i)).equals(rightValueMap.get(rightAttrs.get(i)))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
