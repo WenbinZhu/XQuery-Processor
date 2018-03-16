@@ -137,8 +137,6 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
     private void visitFLWR(XQueryParser.XqFLWRContext ctx, int k, List<Node> result) {
         if (k == ctx.forClause().var().size()) {
 
-            System.out.println(varMap);
-
             if (ctx.letClause() != null) {
                 visit(ctx.letClause());
             }
