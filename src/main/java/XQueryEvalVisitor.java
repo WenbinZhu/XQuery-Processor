@@ -115,7 +115,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitXqEndTag(XQueryParser.XqEndTagContext ctx) {
-        return visit(ctx.WORD() );
+        return visit(ctx.WORD());
     }
 
     @Override
@@ -189,23 +189,47 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         } else {
             // Case 2: join
 
-            // build index on right table
-            Map<String, List<Node>> tag2candidates = new HashMap<>();
-            for (Node rightNode : rightTuples) {
-                String index = createIndexOnAttr(rightNode, rightAttrs.get(0));
-                if (!tag2candidates.containsKey(index)) {
-                    tag2candidates.put(index, new ArrayList<>());
-                }
-                tag2candidates.get(index).add(rightNode);
-            }
+            boolean indexOnAll = true;
 
-            // for each left tuple, only join with right tuples with same index
-            for (Node leftTuple : leftTuples) {
-                String index = createIndexOnAttr(leftTuple, leftAttrs.get(0));
-                if (tag2candidates.containsKey(index)) {
-                    for (Node rightTuple : tag2candidates.get(index)) {
-                        if (matchWith(leftTuple, rightTuple, leftAttrs, rightAttrs)) {
+            if (indexOnAll) {
+                // build index on all fields of right table
+                Map<String, List<Node>> tag2candidates = new HashMap<>();
+                for (Node rightNode : rightTuples) {
+                    String index = createIndexOnAttrs(rightNode, rightAttrs);
+                    if (!tag2candidates.containsKey(index)) {
+                        tag2candidates.put(index, new ArrayList<>());
+                    }
+                    tag2candidates.get(index).add(rightNode);
+                }
+
+                // for each left tuple, only join with right tuples with same index
+                for (Node leftTuple : leftTuples) {
+                    String index = createIndexOnAttrs(leftTuple, leftAttrs);
+                    if (tag2candidates.containsKey(index)) {
+                        for (Node rightTuple : tag2candidates.get(index)) {
                             result.add(mergeTuples(leftTuple, rightTuple));
+                        }
+                    }
+                }
+            } else {
+                // build index on first field of right table
+                Map<String, List<Node>> tag2candidates = new HashMap<>();
+                for (Node rightNode : rightTuples) {
+                    String index = createIndexOnAttr(rightNode, rightAttrs.get(0));
+                    if (!tag2candidates.containsKey(index)) {
+                        tag2candidates.put(index, new ArrayList<>());
+                    }
+                    tag2candidates.get(index).add(rightNode);
+                }
+
+                // for each left tuple, only join with right tuples with same index
+                for (Node leftTuple : leftTuples) {
+                    String index = createIndexOnAttr(leftTuple, leftAttrs.get(0));
+                    if (tag2candidates.containsKey(index)) {
+                        for (Node rightTuple : tag2candidates.get(index)) {
+                            if (matchWith(leftTuple, rightTuple, leftAttrs, rightAttrs)) {
+                                result.add(mergeTuples(leftTuple, rightTuple));
+                            }
                         }
                     }
                 }
@@ -234,6 +258,19 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
             element.appendChild(rightValues.item(i).cloneNode(true));
         }
         return element;
+    }
+
+    private String createIndexOnAttrs(Node node, List<String> attrs) {
+        NodeList rightValues = node.getChildNodes();
+        Map<String, String> m = new HashMap<>();
+        for (int i = 0; i < rightValues.getLength(); ++i) {
+            m.put(rightValues.item(i).getNodeName(), rightValues.item(i).getTextContent());
+        }
+        String index = "";
+        for (int i = 0; i < attrs.size(); ++i) {
+            index += m.get(attrs.get(i)) + "@";
+        }
+        return index;
     }
 
     private String createIndexOnAttr(Node node, String attr) {
@@ -369,15 +406,14 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         return null;
     }
 
-    private boolean visitCondSomeHelper(XQueryParser.CondSomeContext ctx, int k){
+    private boolean visitCondSomeHelper(XQueryParser.CondSomeContext ctx, int k) {
         if (k == ctx.var().size()) {
             return visit(ctx.cond()) != null;
-        }
-        else {
+        } else {
             String key = ctx.var(k).getText();
             List<Node> valueList = visit(ctx.xq(k));
 
-            for (Node node: valueList) {
+            for (Node node : valueList) {
                 HashMap<String, List<Node>> backup = new HashMap<>(varMap);
 
                 LinkedList<Node> value = new LinkedList<>();
