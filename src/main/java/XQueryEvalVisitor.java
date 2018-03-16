@@ -169,8 +169,8 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
 
     @Override
     public List<Node> visitJoinClause(XQueryParser.JoinClauseContext ctx) {
-        List<Node> leftTuples = unique(visit(ctx.xq(0)));
-        List<Node> rightTuples = unique(visit(ctx.xq(1)));
+        List<Node> leftTuples = visit(ctx.xq(0));
+        List<Node> rightTuples = visit(ctx.xq(1));
 
         List<String> leftAttrs = getAttrList(ctx.attrList(0));
         List<String> rightAttrs = getAttrList(ctx.attrList(1));
@@ -275,7 +275,7 @@ public class XQueryEvalVisitor extends XQueryBaseVisitor<List<Node>> {
         String index = null;
         NodeList values = node.getChildNodes();
         for (int i = 0; i < values.getLength(); ++i) {
-            if (values.item(i).getNodeName() == attr) {
+            if (values.item(i).getNodeName().equals(attr)) {
                 index = values.item(i).getTextContent();
             }
         }
