@@ -1,0 +1,11 @@
+for $b in doc("book.xml")//author,
+$a in doc("book.xml")//author,
+$tb in $b/first,
+$ta in $a/last
+where $tb eq $ta
+return
+<book-with-name>
+{ $tb,
+<first>{ $b/first }</first>,
+<last>{ $a/last }</last> }
+</book-with-name>

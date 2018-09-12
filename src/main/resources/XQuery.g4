@@ -7,13 +7,14 @@ xq          : var                               # XqVariable
             | StringConstant                    # XqString
             | ap                                # XqAp
             | '(' xq ')'                        # XqParentheses
-            | xq ',' xq                         # XqConcat
             | xq '/' rp                         # XqChildren
             | xq '//' rp                        # XqDescendants
-            | startTag '{' xq '}' endTag        # XqEnclosedTags
+            | xq ',' xq                         # XqConcat
+            | startTag ('{')* xq ('}')* endTag  # XqEnclosedTags
             | forClause letClause? whereClause?
               returnClause                      # XqFLWR
             | letClause xq                      # XqLetClause
+            | joinClause                        # XqJoinClause
             ;
 
 var         : '$' WORD
@@ -32,6 +33,16 @@ letClause   : 'let' var ':=' xq (',' var ':=' xq)*
             ;
 
 returnClause: 'return' xq
+            ;
+
+joinClause  : 'join' '(' xq ',' xq ','  attrList ',' attrList ')'
+            ;
+
+attrList    : '[' ']'
+            | '[' attrName (',' attrName)* ']'
+            ;
+
+attrName    : WORD
             ;
 
 whereClause : 'where' cond

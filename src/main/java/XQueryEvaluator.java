@@ -1,11 +1,15 @@
 package main.java;
 
+import main.antlr.XQueryBaseVisitor;
 import main.antlr.XQueryLexer;
 import main.antlr.XQueryParser;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -24,25 +28,20 @@ import javax.xml.transform.stream.StreamResult;
 public class XQueryEvaluator {
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 2) {
-            System.out.println("Input query file and output file must be provided.");
+        if (args.length != 3 || !(args[2].equals("normal") || args[2].equals("optimized"))) {
+            System.out.println("Usage: XQueryEvaluator input_path output_path normal/optimized");
             System.exit(1);
         }
 
         // Execute input query
         String queryFile = args[0];
         String outputFile = args[1];
-        FileInputStream fis = new FileInputStream(queryFile);
-        ANTLRInputStream ais = new ANTLRInputStream(fis);
-        XQueryLexer lexer = new XQueryLexer(ais);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        XQueryParser parser = new XQueryParser(tokens);
-        ParseTree tree = parser.xq();
-        XQueryEvalVisitor visitor = new XQueryEvalVisitor();
-        List<Node> queryResult = visitor.visit(tree);
+        String queryType = args[2];
+        List<Node> queryResult = getQueryResult(queryFile, queryType);
 
         // Generate output xml object
         System.out.println("Query result: " + queryResult);
+        System.out.println(queryResult.size());
         DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
         Document doc = docBuilder.newDocument();
@@ -72,5 +71,31 @@ public class XQueryEvaluator {
         DOMSource source = new DOMSource(doc);
         StreamResult result = new StreamResult(new FileOutputStream(outputFile));
         transformer.transform(source, result);
+    }
+
+    private static List<Node> getQueryResult(String queryFile, String queryType) throws Exception {
+        FileInputStream fis = new FileInputStream(queryFile);
+        ANTLRInputStream ais = new ANTLRInputStream(fis);
+        XQueryEvalVisitor evalVisitor = new XQueryEvalVisitor();
+        XQueryRewriteVisitor rewriteVisitor = new XQueryRewriteVisitor();
+
+        if (queryType.equals("normal")) {
+            return getQueryResultFromVisitor(ais, evalVisitor);
+        }
+
+        String rewrote = getQueryResultFromVisitor(ais, rewriteVisitor);
+        System.out.println("===\n" + rewrote + "\n===");
+        ais = new ANTLRInputStream(rewrote);
+
+        return getQueryResultFromVisitor(ais, evalVisitor);
+    }
+
+    private static <T> T getQueryResultFromVisitor(ANTLRInputStream ais, XQueryBaseVisitor<T> visitor) {
+        XQueryLexer lexer = new XQueryLexer(ais);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        XQueryParser parser = new XQueryParser(tokens);
+        ParseTree tree = parser.xq();
+
+        return visitor.visit(tree);
     }
 }
